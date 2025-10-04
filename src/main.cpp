@@ -30,11 +30,11 @@
 */
 
 // OpenGL loader (GLAD) and context/window management (GLFW)
-#include <glad/gl.h>
+#define GLFW_INCLUDE_NONE // Tell GLFW not to include OpenGL headers
 #include <GLFW/glfw3.h>
+#include <glad/gl.h>
 
 // Standard libraries for I/O and math
-#include <iostream>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <fstream> // For file operations
@@ -63,13 +63,13 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) 
-{
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
+void key_callback(GLFWwindow *window, int key, int scancode, int action,
+                  int mods) {
+  if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+    glfwSetWindowShouldClose(window, true);
 
-    if (key == GLFW_KEY_R && action == GLFW_PRESS)
-        reloadRequested = true;
+  if (key == GLFW_KEY_R && action == GLFW_PRESS)
+    reloadRequested = true;
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
@@ -105,11 +105,11 @@ int main() {
 
     //===============================================INITIALIZATION PHASE =======================================================
 
-    // Step 1: Initialize GLFW (window + context management)
-    if (!glfwInit()) {
-        std::cout << "Failed to initialize GLFW" << std::endl;
-        return -1;
-    }
+  // Step 1: Initialize GLFW (window + context management)
+  if (!glfwInit()) {
+    std::cout << "Failed to initialize GLFW" << std::endl;
+    return -1;
+  }
 
     // Step 2: Create a windowed mode window and OpenGL context
     GLFWwindow* window = glfwCreateWindow(1200, 800, "ShaderViewer Test", NULL, NULL);
@@ -119,21 +119,17 @@ int main() {
         return -1;
     }
 
-    // Step 3: Make the window's OpenGL context current
-    glfwMakeContextCurrent(window);
+    // Clear the screen with a dark gray color
+    glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
-    // Set a callback for window resize events
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    // still need to understand this !!!!!
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    // Use shader program and set matrices
+    shader.use();
 
-    // Step 4: Load OpenGL function pointers via GLAD
-    // Must be called AFTER you have a valid OpenGL context (i.e., after glfwMakeContextCurrent).
-    if (!gladLoaderLoadGL()) {
-        std::cout << "Failed to initialize GLAD" << std::endl;
-        glfwDestroyWindow(window);
-        glfwTerminate();
-        return -1;
-    }
+    // Identity model matrix (no transformations yet)
+    glm::mat4 modelMat = glm::mat4(1.0f);
 
     //This enables depth perception
     //Specifically helps gl figure out overlaps on geometry
