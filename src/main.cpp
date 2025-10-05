@@ -52,7 +52,9 @@
 
 
 bool reloadRequested = false;   //Updates to true if R key pressed for reload
-                                //look at key_callback for more
+float modelX = -1.0f; // Position of the first model (modifiable with arrow keys)
+float modelY = -1.0f; // Position of the first model (modifiable with arrow keys)
+//look at key_callback for more
 
 
 // ============================Call Back methods for subscriptions==================================================================
@@ -68,8 +70,25 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    if (key == GLFW_KEY_R && action == GLFW_PRESS)
-        reloadRequested = true;
+      if (key == GLFW_KEY_R && action == GLFW_PRESS)
+            reloadRequested = true;
+
+    // Move model left/right
+    if (key == GLFW_KEY_LEFT && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+        modelX -= 0.1f;
+    }
+    if (key == GLFW_KEY_RIGHT && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+        modelX += 0.1f;
+    }
+
+    // Move model Up/Down
+    if (key == GLFW_KEY_UP && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+        modelY += 0.1f;
+    }
+    if (key == GLFW_KEY_DOWN && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+        modelY -= 0.1f;
+    }
+
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
@@ -225,9 +244,9 @@ int main() {
 
         // Use shader program and set matrices
         shader.use();
-
-        // Identity model matrix (no transformations yet)
-        glm::mat4 modelMat = glm::mat4(1.0f);
+        // Model matrix for first model (position controlled by Keys) (See modelX and modelY)
+        glm::mat4 modelMat = glm::translate(glm::mat4(1.0f), glm::vec3(modelX, modelY, 0.0f));
+        glm::mat4 modelMat2 = glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
         // Get view matrix from camera (defines camera position/direction)
         glm::mat4 view = camera.getViewMatrix();
@@ -237,17 +256,20 @@ int main() {
         glfwGetFramebufferSize(window, &width, &height);
         glm::mat4 projection = camera.getProjectionMatrix(width / (float)height);
 
-        // Send matrices to the shader
+        // Send matrices to the shader and draw
         shader.setMat4("model", glm::value_ptr(modelMat));
+        model.draw();
+
+        // Send matrices to the shader and draw
+        shader.setMat4("model", glm::value_ptr(modelMat2));
+        model.draw();
+
         shader.setMat4("view", glm::value_ptr(view));
         shader.setMat4("projection", glm::value_ptr(projection));
 
         //Add time uniform for animation
         float timeVal = static_cast<float>(glfwGetTime());
         shader.setFloat("time", timeVal);
-        
-        // Draw the 3D model
-        model.draw();
 
         // Monitor camera coordinates in the window title
         char title[128];
